@@ -1,0 +1,40 @@
+{
+  "1207779350934462486": [
+    {
+      "amount": 100.0,
+      "category": "їжа"
+    },
+    {
+      "category": "Інше",
+      "amount": 200.0
+    },
+    {
+      "category": "Інше",
+      "amount": 200.0
+    },
+    {
+      "category": "Різне",
+      "amount": 300.0
+    },
+    {
+      "category": "Різне",
+      "amount": 600.0
+    },
+    {
+      "category": "Різне",
+      "amount": 700.0
+    },
+    {
+      "category": "Різне",
+      "amount": 400.0
+    },
+    {
+      "category": "Різне",
+      "amount": 300.0
+    },
+    {
+      "category": "Транспорт",
+      "amount": 6.0
+    }
+  ]
+}
