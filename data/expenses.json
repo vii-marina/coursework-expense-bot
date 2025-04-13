@@ -1,52 +1,34 @@
 {
   "1207779350934462486": [
     {
-      "amount": 100.0,
-      "category": "їжа"
+      "category": "Їжа",
+      "amount": 170.0,
+      "date": "13/04/2025"
     },
     {
-      "category": "Інше",
-      "amount": 200.0
-    },
-    {
-      "category": "Інше",
-      "amount": 200.0
-    },
-    {
-      "category": "Різне",
-      "amount": 300.0
-    },
-    {
-      "category": "Різне",
-      "amount": 600.0
-    },
-    {
-      "category": "Різне",
-      "amount": 700.0
-    },
-    {
-      "category": "Різне",
-      "amount": 400.0
-    },
-    {
-      "category": "Різне",
-      "amount": 300.0
-    },
-    {
-      "category": "Транспорт",
-      "amount": 6.0
-    },
-    {
-      "category": "Салон краси",
-      "amount": 800.0
+      "category": "Їжа",
+      "amount": 78.0,
+      "date": "10/05/2025"
     },
     {
       "category": "Комунальні послуги",
-      "amount": 400.0
+      "amount": 500.0,
+      "date": "13/04/2025"
     },
     {
       "category": "Комунальні послуги",
-      "amount": 1200.0
+      "amount": 30.0,
+      "date": "13/04/2025"
+    },
+    {
+      "category": "Підписки",
+      "amount": 300.0,
+      "date": "13/04/2025"
+    },
+    {
+      "category": "Їжа",
+      "amount": 500.0,
+      "date": "13/04/2025"
     }
   ]
 }

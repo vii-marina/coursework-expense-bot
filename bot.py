@@ -5,6 +5,15 @@ from utils.helpers import ensure_files
 
 ensure_files()  # ✅ важливо
 
+# 🔥 Очистка старих даних (тимчасово)
+# from utils.helpers import save_data, EXPENSES_FILE, CATEGORIES_FILE, SETTINGS_FILE
+
+# save_data(EXPENSES_FILE, {})
+# save_data(CATEGORIES_FILE, {})
+# save_data(SETTINGS_FILE, {})
+# print("🧹 Очищено всі збережені дані.")
+
+
 import os
 
 intents = discord.Intents.default()
