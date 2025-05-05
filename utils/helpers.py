@@ -7,7 +7,7 @@ CATEGORIES_FILE = os.path.join(DATA_PATH, "categories.json")
 INCOME_FILE = os.path.join(DATA_PATH, "income.json")
 INCOME_CATEGORIES_FILE = os.path.join(DATA_PATH, "income_categories.json")
 SETTINGS_FILE = "data/settings.json"
-
+AUTO_INCOME_FILE = os.path.join(DATA_PATH, "auto_income.json")
 
 def ensure_files():
     os.makedirs(DATA_PATH, exist_ok=True)
@@ -27,7 +27,10 @@ def ensure_files():
     if not os.path.exists(INCOME_CATEGORIES_FILE):
         with open(INCOME_CATEGORIES_FILE, "w", encoding="utf-8") as f:
             json.dump({}, f, ensure_ascii=False, indent=2)
-
+            
+    if not os.path.exists(AUTO_INCOME_FILE):
+        with open(AUTO_INCOME_FILE, "w", encoding="utf-8") as f:
+            json.dump({}, f, ensure_ascii=False, indent=2)
 
 def load_data(file_path):
     with open(file_path, "r", encoding="utf-8") as f:

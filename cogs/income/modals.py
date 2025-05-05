@@ -41,6 +41,19 @@ class AutoIncomeModal(Modal, title="Автоматичний прибуток"):
             f"✅ Додано автоматичний прибуток: **{self.category.value.strip()}**, {amount_value:.2f} грн ({self.interval})",
             ephemeral=True
         )
+        
+class AutoDeleteModal(Modal, title="Видалити автоприбуток"):
+    category = TextInput(label="Категорія для видалення")
+
+    async def on_submit(self, interaction: Interaction):
+        from utils.helpers import load_data, save_data, AUTO_INCOME_FILE
+        user_id = str(interaction.user.id)
+        data = load_data(AUTO_INCOME_FILE)
+        entries = data.get(user_id, [])
+        new_entries = [e for e in entries if e["category"] != self.category.value]
+        data[user_id] = new_entries
+        save_data(AUTO_INCOME_FILE, data)
+        await interaction.response.send_message("🗑️ Прибуток видалено (якщо існував).", ephemeral=True)
 
 
 class AddIncomeModal(Modal, title="Додавання прибутку"):

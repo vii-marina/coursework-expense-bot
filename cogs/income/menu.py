@@ -43,6 +43,19 @@ class IncomeMenuView(View):
         key = (interaction.channel.id, interaction.user.id)
         cog = interaction.client.get_cog("UI")
         cog.active_messages.setdefault(key, []).append(msg.id)
+
+    @discord.ui.button(label="🛠 Керування автоматичними", style=discord.ButtonStyle.secondary)
+    async def manage_auto_income(self, interaction: discord.Interaction, button: Button):
+        from .auto import AutoIncomeMenuView
+        view = AutoIncomeMenuView(self.user_id)
+        await view.send_with_summary(interaction)
+        msg = await interaction.original_response()
+        key = (interaction.channel.id, interaction.user.id)
+        cog = interaction.client.get_cog("UI")
+        cog.active_messages.setdefault(key, []).append(msg.id)
+
+
+        
        
     @discord.ui.button(label="📊 Звіт", style=discord.ButtonStyle.secondary)
     async def show_report(self, interaction: discord.Interaction, button: Button):

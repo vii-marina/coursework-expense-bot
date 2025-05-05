@@ -1,6 +1,9 @@
 import matplotlib.pyplot as plt
 from io import BytesIO
 from discord import File
+from collections import defaultdict
+from utils.helpers import load_data, INCOME_FILE, AUTO_INCOME_FILE, EXPENSES_FILE
+
 
 async def draw_donut_chart(interaction, data: dict, title: str):
     if not data:
@@ -10,8 +13,7 @@ async def draw_donut_chart(interaction, data: dict, title: str):
     labels = list(data.keys())
     values = list(data.values())
 
-    # Встановлюємо стиль кольорів
-    colors = plt.get_cmap('Set3').colors  # Яскрава палітра
+    colors = plt.get_cmap('Set3').colors
 
     fig, ax = plt.subplots(figsize=(6, 6))
     wedges, texts, autotexts = ax.pie(
@@ -33,3 +35,37 @@ async def draw_donut_chart(interaction, data: dict, title: str):
 
     file = File(buf, filename="chart.png")
     await interaction.response.send_message(f"📈 {title}:", file=file, ephemeral=True)
+
+
+# 🔽 Ця функція будує діаграму прибутків з урахуванням автоприбутків
+async def show_income_chart(interaction):
+    user_id = str(interaction.user.id)
+
+    income_data = load_data(INCOME_FILE).get(user_id, [])
+    auto_income_data = load_data(AUTO_INCOME_FILE).get(user_id, [])
+
+    summary = defaultdict(float)
+
+    for entry in income_data:
+        if entry["amount"] > 0:
+            summary[entry["category"]] += entry["amount"]
+
+    for entry in auto_income_data:
+        if entry["amount"] > 0:
+            summary[entry["category"]] += entry["amount"]
+
+    await draw_donut_chart(interaction, summary, "Розподіл прибутків")
+
+
+# 🔽 Функція для діаграми витрат (без змін)
+async def show_expense_chart(interaction):
+    user_id = str(interaction.user.id)
+
+    expense_data = load_data(EXPENSES_FILE).get(user_id, [])
+
+    summary = defaultdict(float)
+    for entry in expense_data:
+        if entry["amount"] > 0:
+            summary[entry["category"]] += entry["amount"]
+
+    await draw_donut_chart(interaction, summary, "Розподіл витрат")
