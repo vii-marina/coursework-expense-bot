@@ -1,5 +1,7 @@
 {
-  "123456789012345678": {
-    "autozvit": true
-  }
+  "python.analysis.extraPaths": [
+    "./cogs",
+    "./cogs/ui",
+    "./cogs/income"
+  ]
 }
