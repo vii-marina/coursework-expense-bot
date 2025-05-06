@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 from io import BytesIO
 from discord import File
 from collections import defaultdict
+
 from utils.helpers import load_data, INCOME_FILE, AUTO_INCOME_FILE, EXPENSES_FILE
 
 
@@ -37,7 +38,7 @@ async def draw_donut_chart(interaction, data: dict, title: str):
     await interaction.response.send_message(f"📈 {title}:", file=file, ephemeral=True)
 
 
-# 🔽 Ця функція будує діаграму прибутків з урахуванням автоприбутків
+# 🔽 Діаграма прибутків (включає також автоматичні прибутки)
 async def show_income_chart(interaction):
     user_id = str(interaction.user.id)
 
@@ -46,18 +47,18 @@ async def show_income_chart(interaction):
 
     summary = defaultdict(float)
 
-    for entry in income_data:
-        if entry["amount"] > 0:
-            summary[entry["category"]] += entry["amount"]
+    for e in income_data:
+        cat = e.get("category", "Без категорії")
+        summary[cat] += float(e.get("amount", 0))
 
-    for entry in auto_income_data:
-        if entry["amount"] > 0:
-            summary[entry["category"]] += entry["amount"]
+    for e in auto_income_data:
+        cat = e.get("category", "Без категорії")
+        summary[cat] += float(e.get("amount", 0))
 
     await draw_donut_chart(interaction, summary, "Розподіл прибутків")
 
 
-# 🔽 Функція для діаграми витрат (без змін)
+# 🔽 Діаграма витрат
 async def show_expense_chart(interaction):
     user_id = str(interaction.user.id)
 

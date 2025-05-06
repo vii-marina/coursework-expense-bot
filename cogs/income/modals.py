@@ -9,39 +9,43 @@ from discord.ui import View, Select
 INCOME_FILE = "data/income.json"
 AUTO_INCOME_FILE = "data/auto_income.json"
 
-class AutoIncomeModal(Modal, title="Автоматичний прибуток"):
+class AutoIncomeModal(Modal):
     def __init__(self, user_id, interval):
-        super().__init__()
+        super().__init__(title="Новий автоматичний прибуток")
         self.user_id = str(user_id)
         self.interval = interval
 
-        self.category = TextInput(label="Категорія", placeholder="Наприклад: Стипендія")
-        self.amount = TextInput(label="Сума", placeholder="Наприклад: 500.00")
+        self.category = TextInput(label="Категорія", placeholder="Наприклад: Зарплата")
+        self.amount = TextInput(label="Сума", placeholder="Наприклад: 5000")
+
         self.add_item(self.category)
         self.add_item(self.amount)
 
-    async def on_submit(self, interaction: Interaction):
-        try:
-            amount_value = float(self.amount.value)
-        except ValueError:
-            await interaction.response.send_message("❌ Невірний формат суми.", ephemeral=True)
-            return
-
+    async def on_submit(self, interaction: discord.Interaction):
         data = load_data(AUTO_INCOME_FILE)
-        auto_incomes = data.get(self.user_id, [])
-        auto_incomes.append({
-            "category": self.category.value.strip(),
-            "amount": amount_value,
-            "interval": self.interval
-        })
-        data[self.user_id] = auto_incomes
+
+        income_entry = {
+            "category": self.category.value,
+            "amount": float(self.amount.value),
+            "interval": self.interval,
+            "time": "12:10",  # фіксована година
+            "date": datetime.now().strftime("%d/%m/%Y")        
+            }
+
+        if self.interval == "weekly":
+            income_entry["day_of_week"] = datetime.now().strftime("%A")
+        elif self.interval == "monthly":
+            income_entry["day_of_month"] = datetime.now().day
+
+        data.setdefault(self.user_id, []).append(income_entry)
         save_data(AUTO_INCOME_FILE, data)
 
         await interaction.response.send_message(
-            f"✅ Додано автоматичний прибуток: **{self.category.value.strip()}**, {amount_value:.2f} грн ({self.interval})",
+            f"✅ Автоматичний прибуток створено: {income_entry['category']} — {income_entry['amount']} грн",
             ephemeral=True
         )
-        
+
+
 class AutoDeleteModal(Modal, title="Видалити автоприбуток"):
     category = TextInput(label="Категорія для видалення")
 

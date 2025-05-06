@@ -1,7 +1,8 @@
+
 import discord
 from discord.ui import View, Select
-from datetime import datetime, timedelta
-from utils.helpers import load_data, EXPENSES_FILE, INCOME_FILE
+from datetime import datetime
+from utils.helpers import load_data, EXPENSES_FILE, INCOME_FILE, AUTO_INCOME_FILE
 
 # --- Вибір періоду ---
 class OverallReportSelect(Select):
@@ -26,6 +27,7 @@ class OverallReportSelect(Select):
         label = label_map.get(selected, "Невідомо")
         await self.on_select_callback(interaction, label)
 
+
 # --- Основне вікно вибору ---
 class OverallReportView(View):
     def __init__(self, user_id: str):
@@ -35,37 +37,51 @@ class OverallReportView(View):
         self.add_item(self.select)
 
     async def on_period_selected(self, interaction: discord.Interaction, period_label: str):
-        now = datetime.now()
-        if period_label == "Сьогодні":
-            start_date = now.replace(hour=0, minute=0, second=0, microsecond=0)
-        elif period_label == "Цей тиждень":
-            start_date = now - timedelta(days=now.weekday())
-        elif period_label == "Цей місяць":
-            start_date = now.replace(day=1)
-        else:
-            await interaction.response.send_message("❌ Невідомий період.", ephemeral=True)
-            return
-
         user_id = str(interaction.user.id)
         incomes = load_data(INCOME_FILE).get(user_id, [])
+        auto_incomes = load_data(AUTO_INCOME_FILE).get(user_id, [])
+        incomes += auto_incomes
         expenses = load_data(EXPENSES_FILE).get(user_id, [])
 
-        def in_period(entry):
-            try:
-                date = datetime.strptime(entry.get("date", ""), "%d/%m/%Y")
-                return date >= start_date
-            except:
-                return False
+        now = datetime.now()
+        filtered_incomes = []
+        filtered_expenses = []
 
-        income_sum = sum(e["amount"] for e in incomes if in_period(e))
-        expense_sum = sum(e["amount"] for e in expenses if in_period(e))
-        balance = income_sum - expense_sum
+        for item in incomes:
+            try:
+                item_date = datetime.strptime(item.get("date", ""), "%d/%m/%Y")
+            except Exception:
+                continue
+
+            if period_label == "Сьогодні" and item_date.date() == now.date():
+                filtered_incomes.append(item)
+            elif period_label == "Цей тиждень" and item_date.isocalendar()[1] == now.isocalendar()[1]:
+                filtered_incomes.append(item)
+            elif period_label == "Цей місяць" and item_date.month == now.month and item_date.year == now.year:
+                filtered_incomes.append(item)
+
+        for item in expenses:
+            try:
+                item_date = datetime.strptime(item.get("date", ""), "%d/%m/%Y")
+            except Exception:
+                continue
+
+            if period_label == "Сьогодні" and item_date.date() == now.date():
+                filtered_expenses.append(item)
+            elif period_label == "Цей тиждень" and item_date.isocalendar()[1] == now.isocalendar()[1]:
+                filtered_expenses.append(item)
+            elif period_label == "Цей місяць" and item_date.month == now.month and item_date.year == now.year:
+                filtered_expenses.append(item)
+
+        total_income = sum(float(i.get("amount", 0)) for i in filtered_incomes)
+        total_expense = sum(float(e.get("amount", 0)) for e in filtered_expenses)
+        balance = total_income - total_expense
 
         report = (
             f"📋 **Загальний звіт за період: {period_label}**\n\n"
-            f"➕ Прибутки: {income_sum:.2f} грн\n"
-            f"➖ Витрати: {expense_sum:.2f} грн\n"
-            f"💰 Залишок: {balance:.2f} грн"
+            f"💰 Прибутків: {total_income:.2f} грн\n"
+            f"💸 Витрат: {total_expense:.2f} грн\n"
+            f"📊 Баланс: {balance:.2f} грн"
         )
 
-        await interaction.response.send_message(report, ephemeral=True)
+        await interaction.response.send_message(content=report, ephemeral=True)

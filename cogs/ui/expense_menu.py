@@ -1,8 +1,6 @@
 import discord
 from discord.ui import View, Button
-from utils.helpers import load_data, EXPENSES_FILE
 from .expenses import CategorySelectView, show_expense_report, show_expense_chart, SetLimitModal
-
 
 class MenuView(View):
     def __init__(self, user_id, categories):
@@ -25,7 +23,6 @@ class MenuView(View):
     @discord.ui.button(label="🔒 Ліміт витрат", style=discord.ButtonStyle.secondary)
     async def set_limit(self, interaction: discord.Interaction, button: Button):
         await interaction.response.send_modal(SetLimitModal(self.user_id))
-
 
     @discord.ui.button(label="📊 Звіт", style=discord.ButtonStyle.secondary)
     async def show_report(self, interaction: discord.Interaction, button: Button):

@@ -1,12 +1,12 @@
 import discord
-from discord.ext import commands
 from discord.ui import Modal, TextInput, Select, View, Button
 from utils.helpers import load_data, save_data, EXPENSES_FILE
 from datetime import datetime
 from io import BytesIO
-import matplotlib.pyplot as plt
 from discord import File
 from cogs.charts import draw_donut_chart
+from cogs.report import ExpenseCategorySelectForDetail  # 🔺 переконайся, що імпорт є
+
 
 # --- Додавання витрати ---
 class ExpenseModal(Modal, title="Введення витрати"):
@@ -98,6 +98,7 @@ class CategorySelect(Select):
     async def callback(self, interaction: discord.Interaction):
         await interaction.response.send_modal(ExpenseModal(self.user_id, self.values[0]))
 
+
 async def show_expense_report(interaction: discord.Interaction, user_id: str):
     data = load_data(EXPENSES_FILE)
     expenses = data.get(str(user_id), [])
@@ -111,7 +112,17 @@ async def show_expense_report(interaction: discord.Interaction, user_id: str):
         summary[cat] = summary.get(cat, 0) + float(e["amount"])
 
     lines = [f"**{cat}**: {amount:.2f} грн" for cat, amount in summary.items()]
-    await interaction.response.send_message("📊 **Звіт про витрати:**\n" + "\n".join(lines), ephemeral=True)
+    text = "📊 **Звіт про витрати:**\n" + "\n".join(lines)
+
+    await interaction.response.defer(ephemeral=True)  # ✅ дозволяє кілька followup-повідомлень
+    await interaction.followup.send(text)
+    
+    # ⬇️ Додаємо логіку редагування з report.py
+    await interaction.followup.send(
+        "🔧 Оберіть категорію, щоб переглянути всі записи та редагувати:",
+        view=ExpenseCategorySelectForDetail(user_id)
+    )
+
 
 async def show_expense_chart(interaction: discord.Interaction, user_id: str):
     data = load_data(EXPENSES_FILE)
@@ -126,3 +137,4 @@ async def show_expense_chart(interaction: discord.Interaction, user_id: str):
         summary[cat] = summary.get(cat, 0) + float(e["amount"])
 
     await draw_donut_chart(interaction, summary, "Розподіл витрат")
+

@@ -2,8 +2,8 @@ import discord
 from discord.ui import View, Button
 from utils.helpers import load_data
 from .modals import AddIncomeModal, AutoIncomeIntervalView
-from .report import IncomeCategorySelectForDetail
-from cogs.charts import draw_donut_chart
+from cogs.report import IncomeCategorySelectForDetail
+from cogs.charts import show_income_chart
 from cogs.ui.base_category import BaseCategoryManagerView
 
 from discord.ext import commands
@@ -53,60 +53,46 @@ class IncomeMenuView(View):
         key = (interaction.channel.id, interaction.user.id)
         cog = interaction.client.get_cog("UI")
         cog.active_messages.setdefault(key, []).append(msg.id)
-
-
         
-       
     @discord.ui.button(label="📊 Звіт", style=discord.ButtonStyle.secondary)
     async def show_report(self, interaction: discord.Interaction, button: Button):
-        data = load_data(INCOME_FILE)
-        incomes = data.get(self.user_id, [])
-        if not incomes:
-            await interaction.response.send_message("📭 У вас ще немає прибутків.", ephemeral=True)
-            return
-
+        income_data = load_data(INCOME_FILE)
         auto_data = load_data(AUTO_INCOME_FILE)
-        auto_map = {}
-        for e in auto_data.get(self.user_id, []):
-            raw = e["category"]
-            interval = e["interval"]
-            label = f"{raw} [автоматично - " + {
+
+        incomes = income_data.get(self.user_id, [])
+        autos = auto_data.get(self.user_id, [])
+
+        # Побудуємо мапу автоприбутків: категорія → підпис
+        auto_labels = {
+            e["category"]: f"{e['category']} [автоматично - " + {
                 "daily": "щодня",
                 "weekly": "щотижня",
                 "monthly": "щомісяця"
-            }.get(interval, interval) + "]"
-            auto_map[raw] = label
+            }[e["interval"]] + "]"
+            for e in autos
+        }
 
         summary = {}
-        for e in incomes:
-            raw_cat = e.get("category", "Без категорії")
-            cat = auto_map.get(raw_cat, raw_cat)
-            amount = float(e.get("amount", 0))
-            summary[cat] = summary.get(cat, 0) + amount
+        for entry in incomes:
+            raw_cat = entry.get("category", "Без категорії")
+            amount = float(entry.get("amount", 0))
+            display_cat = auto_labels.get(raw_cat, raw_cat)  # якщо це автоприбуток — змінюємо підпис
+            summary[display_cat] = summary.get(display_cat, 0) + amount
+
+        # Не додаємо штучно 0.0 грн для автоприбутків, які ще не активувались — тільки якщо вони вже є в income.json
 
         total = sum(summary.values())
         text = "\n".join([f"• **{cat}**: {amt:.2f} грн" for cat, amt in summary.items()])
         text += f"\n\n**Загалом:** {total:.2f} грн"
 
-        # Правильне завершення interaction
         await interaction.response.defer(ephemeral=True)
         await interaction.followup.send(text, view=IncomeCategorySelectForDetail(self.user_id))
 
-
+        
     @discord.ui.button(label="📈 Діаграма", style=discord.ButtonStyle.secondary)
     async def show_chart(self, interaction: discord.Interaction, button: Button):
-        data = load_data(INCOME_FILE)
-        incomes = data.get(self.user_id, [])
-        if not incomes:
-            await interaction.response.send_message("📭 Немає даних для діаграми.", ephemeral=True)
-            return
+        await show_income_chart(interaction)
 
-        summary = {}
-        for e in incomes:
-            cat = e.get("category", "Без категорії")
-            summary[cat] = summary.get(cat, 0) + float(e.get("amount", 0))
-
-        await draw_donut_chart(interaction, summary, "Розподіл прибутків")
 
     @discord.ui.button(label="⚙️ Категорії", style=discord.ButtonStyle.secondary)
     async def manage_categories(self, interaction: discord.Interaction, button: Button):

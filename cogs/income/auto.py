@@ -4,7 +4,7 @@ from discord.ui import View, Button
 from discord import Interaction
 from datetime import datetime, timedelta
 from utils.helpers import load_data, save_data
-from .modals import AutoIncomeModal, AutoDeleteModal
+from .modals import AutoDeleteModal
 from .menu import IncomeMenuView
 from utils.helpers import AUTO_INCOME_FILE 
 
@@ -25,7 +25,7 @@ class AutoIncomeMenuView(View):
         else:
             interval_map = {'daily': 'щодня', 'weekly': 'щотижня', 'monthly': 'щомісяця'}
             summary = "\n".join([
-                f"• **{e['category']}** — {e['amount']} грн ({interval_map.get(e['interval'], e['interval'])})"
+                f"• **{e['category']}** — {e['amount']} грн ({interval_map.get(e['interval'], e['interval'])}, {e.get('time', 'час не вказано')})"
                 for e in auto_data
             ])
             content = f"📥 Меню автоматичних прибутків:\n{summary}"
@@ -37,8 +37,8 @@ class AutoIncomeMenuView(View):
 
     @discord.ui.button(label="🔙 Назад", style=discord.ButtonStyle.secondary)
     async def go_back(self, interaction: Interaction, button: Button):
-
         await interaction.response.edit_message(content="📥 Меню керування прибутками:", view=IncomeMenuView(interaction.user.id))
+
 
 class AutoEntries(commands.Cog):
     def __init__(self, bot):
@@ -100,7 +100,6 @@ class AutoEntries(commands.Cog):
                         pass
 
         save_data(target_file, target)
-
 
 
 async def setup(bot):
